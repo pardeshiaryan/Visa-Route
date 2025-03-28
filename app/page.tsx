@@ -2,15 +2,24 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import WorldMap from "react-svg-worldmap";
 
 import { Button } from "@/components/ui/button"
 import { SignedOut, UserButton } from "@clerk/nextjs";
 import { SignedIn, SignInButton } from "@clerk/clerk-react";
+import { useCountryStore } from "@/lib/zustand";
 
 export default function Home() {
+
+
+  const { startCountry } = useCountryStore();
+
+
+
+  
+
   return (
     <div className="flex flex-col min-h-screen">
+      <h1>{startCountry} hello </h1>
       <header className="py-6 px-4 sm:px-6 lg:px-8 bg-white border-b">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center">
@@ -43,24 +52,7 @@ export default function Home() {
       </header>
 
       <main>
-        {/* Hero Section */}
-        {/* <section className="bg-gradient-to-r from-primary to-primary-dark text-white py-20">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl sm:text-5xl font-bold mb-6">Predict Your Visa Application Outcome Instantly</h1>
-              <p className="text-xl mb-8">
-                Our AI-powered system analyzes your application details to provide accurate predictions in seconds.
-              </p>
-              <Button size="lg" asChild>
-                <Link href="/predict">Start Your Prediction</Link>
-              </Button>
-            </div>
-          </div>
-        </section> */}
-
-
-
-
+     
 
 
 
@@ -75,7 +67,7 @@ export default function Home() {
         Our AI-powered system analyzes your application details to provide accurate predictions in seconds.
       </p>
       <Button size="lg" asChild>
-        <Link href="/predict">Start Your Prediction</Link>
+        <Link href="/visa-cheak">Start Your Prediction</Link>
       </Button>
     </div>
   </div>
@@ -94,13 +86,7 @@ export default function Home() {
 
 
                   <section  className="py-20 bg-gray-50">
-                  {/* <WorldMap
-        color="red"
-        title="Top 10 Populous Countries"
-        value-suffix="people"
-        size="lg"
-        data={data}
-      /> */}
+             
 
 
         </section>
@@ -173,7 +159,7 @@ export default function Home() {
             <h2 className="text-3xl font-bold mb-4">Ready to Predict Your Visa Outcome?</h2>
             <p className="text-xl mb-8">Join thousands of satisfied users and get your instant prediction now.</p>
             <Button size="lg" variant="secondary" asChild>
-              <Link href="/predict">Start Your Free Prediction</Link>
+              <Link href="/visa-cheak">Start Your Free Prediction</Link>
             </Button>
           </div>
         </section>

@@ -1,140 +1,141 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import * as z from "zod"
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { countries } from "@/lib/utils";
+// import {useCou}
 const formSchema = z.object({
-  nationality: z.string().min(2, {
-    message: "Nationality must be at least 2 characters.",
+  startCountry: z.string().min(2, {
+    message: "Start country must be at least 2 characters.",
   }),
-  age: z
-    .number()
-    .min(18, {
-      message: "You must be at least 18 years old.",
-    })
-    .max(120, {
-      message: "Age must be less than 120.",
-    }),
-  visaType: z.string({
-    required_error: "Please select a visa type.",
+  endCountry: z.string().min(2, {
+    message: "End country must be at least 2 characters.",
   }),
-  purpose: z
-    .string()
-    .min(10, {
-      message: "Purpose must be at least 10 characters.",
-    })
-    .max(500, {
-      message: "Purpose must not exceed 500 characters.",
-    }),
-})
+});
 
 export function VisaPredictionForm() {
-  const [prediction, setPrediction] = useState<string | null>(null)
+  const [output, setOutput] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nationality: "",
-      age: undefined,
-      visaType: "",
-      purpose: "",
+      startCountry: "",
+      endCountry: "",
     },
-  })
+  });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Here you would typically send the form data to your backend API
-    // For this example, we'll just set a mock prediction
-    setPrediction("Based on the provided information, your visa application has a 75% chance of approval.")
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoading(true);
+    setOutput(null);
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:8000/visa-info/?passport_country=${values.startCountry}&destination_country=${values.endCountry}`
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setOutput(
+          `Visa requirement for ${values.startCountry} → ${values.endCountry}: ${data.visa_requirement}`
+        );
+
+      } else {
+        setError(data.error || "Failed to fetch visa data.");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Start Country */}
         <FormField
           control={form.control}
-          name="nationality"
+          name="startCountry"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nationality</FormLabel>
+              <FormLabel>Start Country</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your nationality" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="age"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Age</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter your age"
-                  {...field}
-                  onChange={(e) => field.onChange(Number.parseInt(e.target.value, 10))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="visaType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Visa Type</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a visa type" />
+                    <SelectValue placeholder="Select a country or type" />
                   </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="tourist">Tourist</SelectItem>
-                  <SelectItem value="business">Business</SelectItem>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="work">Work</SelectItem>
-                </SelectContent>
-              </Select>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* End Country */}
         <FormField
           control={form.control}
-          name="purpose"
+          name="endCountry"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Purpose of Visit</FormLabel>
+              <FormLabel>End Country</FormLabel>
               <FormControl>
-                <Textarea placeholder="Briefly describe the purpose of your visit" className="resize-none" {...field} />
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a country or type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>
+                        {country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
-              <FormDescription>Provide a brief description of why you're applying for this visa.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit">Predict Visa Outcome</Button>
+
+        {/* Submit Button */}
+        <Button type="submit" disabled={loading}>
+          {loading ? "Fetching..." : "Show Visa Info"}
+        </Button>
       </form>
-      {prediction && (
-        <div className="mt-8 p-4 bg-secondary text-secondary-foreground rounded-md">
-          <h3 className="text-lg font-semibold mb-2">Prediction Result:</h3>
-          <p>{prediction}</p>
+
+      {/* Output Section */}
+      {output && (
+        <div className="mt-4 p-4 bg-green-100 text-green-800 rounded-md">
+          <h3 className="text-lg font-semibold">Visa Information:</h3>
+          <p>{output}</p>
+        </div>
+      )}
+
+      {/* Error Section */}
+      {error && (
+        <div className="mt-4 p-4 bg-red-100 text-red-800 rounded-md">
+          <h3 className="text-lg font-semibold">Error:</h3>
+          <p>{error}</p>
         </div>
       )}
     </Form>
-  )
+  );
 }
-
